@@ -1,0 +1,141 @@
+CREATE DATABASE healthconnectaiDB;
+-- =========================
+-- 1. USERS
+-- =========================
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_users_email ON users(email);
+
+-- =========================
+-- 2. ROLES
+-- =========================
+CREATE TABLE roles (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- 3. USER_ROLES
+-- =========================
+CREATE TABLE user_roles (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    CONSTRAINT unique_user_role UNIQUE (user_id, role_id)
+);
+
+-- =========================
+-- 4. PERMISSIONS
+-- =========================
+CREATE TABLE permissions (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- =========================
+-- 5. ROLE_PERMISSIONS
+-- =========================
+CREATE TABLE role_permissions (
+    id BIGSERIAL PRIMARY KEY,
+    role_id BIGINT NOT NULL,
+    permission_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_role_perm FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    CONSTRAINT fk_perm FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE,
+    CONSTRAINT unique_role_permission UNIQUE (role_id, permission_id)
+);
+
+-- =========================
+-- 6. REFRESH TOKENS
+-- =========================
+CREATE TABLE refresh_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_refresh_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_refresh_user ON refresh_tokens(user_id);
+
+-- =========================
+-- 7. AUDIT LOGS
+-- =========================
+CREATE TABLE audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT,
+    action VARCHAR(100) NOT NULL,
+    entity VARCHAR(100),
+    entity_id BIGINT,
+    old_value JSONB,
+    new_value JSONB,
+    ip_address VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- =========================
+-- 8. NOTIFICATIONS
+-- =========================
+CREATE TABLE notifications (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    type VARCHAR(50),
+    title VARCHAR(255),
+    message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_notifications_user ON notifications(user_id);
+
+-- =========================
+-- 9. SETTINGS
+-- =========================
+CREATE TABLE settings (
+    id BIGSERIAL PRIMARY KEY,
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value TEXT,
+    description TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- 10. FILES
+-- =========================
+CREATE TABLE files (
+    id BIGSERIAL PRIMARY KEY,
+    entity VARCHAR(100),
+    entity_id BIGINT,
+    filename VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size BIGINT,
+    uploaded_by BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_uploaded_by FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_files_entity ON files(entity, entity_id);
