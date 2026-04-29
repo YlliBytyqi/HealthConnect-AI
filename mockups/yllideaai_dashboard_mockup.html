@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<title>HealthConnect AI - AI Dashboard Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+    color: #1a2332;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+
+  header {
+    background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 24px rgba(31, 78, 121, 0.15);
+  }
+  header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  header p { opacity: 0.9; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+  .card h2 {
+    font-size: 1.3rem;
+    color: #1f4e79;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e8eef5;
+  }
+  .heart-card h2 { color: #b91c1c; border-bottom-color: #fce4e4; }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+  }
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d0d8e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+    background: white;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #2e75b6;
+    box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.1);
+  }
+  .heart-card .form-group input:focus, .heart-card .form-group select:focus {
+    border-color: #b91c1c;
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  .btn-predict {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-heart { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
+  .btn-predict:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(31, 78, 121, 0.25);
+  }
+
+  .result-empty { text-align: center; padding: 3rem 1rem; color: #94a0b0; }
+  .result-empty .icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.4; }
+
+  .result-active { display: none; }
+  .result-active.show { display: block; }
+
+  .risk-badge {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .risk-low { background: #d1f5e0; color: #1e8450; }
+  .risk-medium { background: #fef3cd; color: #8b6914; }
+  .risk-high { background: #fce4e4; color: #b91c1c; }
+
+  .probability-bar {
+    background: #e8eef5;
+    height: 32px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  .probability-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71 0%, #f39c12 50%, #e74c3c 100%);
+    width: 0%;
+    transition: width 1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .info-box {
+    background: #f5f7fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #2e75b6;
+  }
+  .heart-card .info-box { border-left-color: #b91c1c; }
+  .info-box .label { font-size: 0.75rem; color: #6b7785; font-weight: 600; text-transform: uppercase; }
+  .info-box .value { font-size: 1.1rem; font-weight: 700; color: #1a2332; margin-top: 0.25rem; }
+
+  .message-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #eff6ff;
+    border-left: 4px solid #2e75b6;
+    border-radius: 8px;
+    color: #1f4e79;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .heart-card .message-box {
+    background: #fef2f2;
+    border-left-color: #b91c1c;
+    color: #991b1b;
+  }
+
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .tab {
+    padding: 0.75rem 1.5rem;
+    background: #f5f7fa;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #6b7785;
+    transition: all 0.2s;
+  }
+  .tab.active { background: #1f4e79; color: white; }
+  .tab.active.heart-tab { background: #b91c1c; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .footer-info {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    text-align: center;
+    color: #6b7785;
+    font-size: 0.85rem;
+  }
+
+  .field-hint { font-size: 0.7rem; color: #94a0b0; margin-top: 0.25rem; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🩺 AI Diagnostic Assistant</h1>
+    <p>Parashikim i rrezikut të sëmundjeve duke përdorur Machine Learning</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-btn-diabetes" onclick="switchTab('diabetes')">🍬 Diabet</button>
+    <button class="tab" id="tab-btn-heart" onclick="switchTab('heart')">❤️ Zemër</button>
+  </div>
+
+  <!-- ================ DIABET ================ -->
+  <div id="tab-diabetes" class="tab-content active">
+    <div class="grid">
+      <div class="card">
+        <h2>📋 Të dhënat e pacientit</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Shtatzëni</label><input type="number" id="pregnancies" value="2"></div>
+          <div class="form-group"><label>Glukozë (mg/dL)</label><input type="number" id="glucose" value="148"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Presion gjaku</label><input type="number" id="bp" value="72"></div>
+          <div class="form-group"><label>Trashësi lëkure</label><input type="number" id="skin" value="35"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Insulinë</label><input type="number" id="insulin" value="0"></div>
+          <div class="form-group"><label>BMI</label><input type="number" id="bmi" value="33.6" step="0.1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Pedigree gjenetik</label><input type="number" id="dpf" value="0.627" step="0.001"></div>
+          <div class="form-group"><label>Mosha</label><input type="number" id="age" value="50"></div>
+        </div>
+        <button class="btn-predict" onclick="predictDiabetes()">🤖 Parashiko Rrezikun</button>
+      </div>
+
+      <div class="card">
+        <h2>🎯 Rezultati i AI-së</h2>
+        <div id="result-empty-d" class="result-empty">
+          <div class="icon">⚕️</div>
+          <p>Plotësoni format në të majtën dhe klikoni "Parashiko"</p>
+        </div>
+        <div id="result-active-d" class="result-active">
+          <div id="riskBadge-d" class="risk-badge risk-medium">⚠️ Rrezik Mesatar</div>
+          <p style="margin-bottom: 0.5rem; font-weight: 600;">Probabiliteti për diabet:</p>
+          <div class="probability-bar">
+            <div id="probFill-d" class="probability-fill" style="width: 0%">0%</div>
+          </div>
+          <div class="info-grid">
+            <div class="info-box"><div class="label">Parashikimi</div><div class="value" id="prediction-d">—</div></div>
+            <div class="info-box"><div class="label">Modeli i përdorur</div><div class="value">Random Forest</div></div>
+            <div class="info-box"><div class="label">Grupi K-Means</div><div class="value" id="riskGroup-d">—</div></div>
+            <div class="info-box"><div class="label">Konfidenca</div><div class="value" id="confidence-d">0%</div></div>
+          </div>
+          <div class="message-box" id="message-d">💡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ ZEMËR ================ -->
+  <div id="tab-heart" class="tab-content">
+    <div class="grid">
+      <div class="card heart-card">
+        <h2>❤️ Të dhënat e pacientit</h2>
+
+        <div class="form-row-3">
+          <div class="form-group"><label>Mosha</label><input type="number" id="h-age" value="63"></div>
+          <div class="form-group">
+            <label>Gjinia</label>
+            <select id="h-sex"><option value="1">Mashkull</option><option value="0">Femër</option></select>
+          </div>
+          <div class="form-group">
+            <label>Dhembja gjoksit (cp)</label>
+            <select id="h-cp">
+              <option value="0">Tipike anginë</option>
+              <option value="1">Atipike</option>
+              <option value="2">Jo-anginë</option>
+              <option value="3" selected>Asimptomatik</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Presion gjaku (trestbps)</label>
+            <input type="number" id="h-trestbps" value="145">
+            <div class="field-hint">mmHg në pushim</div>
+          </div>
+          <div class="form-group">
+            <label>Kolesterol (chol)</label>
+            <input type="number" id="h-chol" value="233">
+            <div class="field-hint">mg/dL</div>
+          </div>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Sheqer agjërimi (fbs)</label>
+            <select id="h-fbs"><option value="0">Nën 120</option><option value="1" selected>Mbi 120</option></select>
+          </div>
+          <div class="form-group">
+            <label>EKG (restecg)</label>
+            <select id="h-restecg">
+              <option value="0" selected>Normal</option>
+              <option value="1">Anomali ST-T</option>
+              <option value="2">Hipertrofi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rrahjet max (thalach)</label>
+            <input type="number" id="h-thalach" value="150">
+          </div>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Anginë nga ushtrimi</label>
+            <select id="h-exang"><option value="0" selected>Jo</option><option value="1">Po</option></select>
+          </div>
+          <div class="form-group">
+            <label>Oldpeak</label>
+            <input type="number" id="h-oldpeak" value="2.3" step="0.1">
+            <div class="field-hint">ST depression</div>
+          </div>
+          <div class="form-group">
+            <label>Slope</label>
+            <select id="h-slope">
+              <option value="0" selected>Ngritje</option>
+              <option value="1">I sheshtë</option>
+              <option value="2">Zbritje</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>CA (vesselët)</label>
+            <select id="h-ca">
+              <option value="0" selected>0</option><option value="1">1</option>
+              <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Thal</label>
+            <select id="h-thal">
+              <option value="1" selected>Normal</option>
+              <option value="2">Defekt fiks</option>
+              <option value="3">Defekt i kthyeshëm</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-predict btn-heart" onclick="predictHeart()">❤️ Parashiko Rrezikun</button>
+      </div>
+
+      <div class="card heart-card">
+        <h2>🎯 Rezultati i AI-së</h2>
+        <div id="result-empty-h" class="result-empty">
+          <div class="icon">❤️</div>
+          <p>Plotësoni format në të majtën dhe klikoni "Parashiko"</p>
+        </div>
+        <div id="result-active-h" class="result-active">
+          <div id="riskBadge-h" class="risk-badge risk-medium">⚠️ Rrezik Mesatar</div>
+          <p style="margin-bottom: 0.5rem; font-weight: 600;">Probabiliteti për sëmundje zemre:</p>
+          <div class="probability-bar">
+            <div id="probFill-h" class="probability-fill" style="width: 0%">0%</div>
+          </div>
+          <div class="info-grid">
+            <div class="info-box"><div class="label">Parashikimi</div><div class="value" id="prediction-h">—</div></div>
+            <div class="info-box"><div class="label">Modeli i përdorur</div><div class="value">kNN</div></div>
+            <div class="info-box"><div class="label">Niveli i rrezikut</div><div class="value" id="riskLevel-h">—</div></div>
+            <div class="info-box"><div class="label">Konfidenca</div><div class="value" id="confidence-h">0%</div></div>
+          </div>
+          <div class="message-box" id="message-h">💡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-info">
+    <strong>Mockup për Yllin</strong> — Dizajn referencë për AI Dashboard. Ndërtoje në React + Tailwind.
+    <br>API endpoints: <code>POST /api/predict/diabetes</code> dhe <code>POST /api/predict/heart</code>
+  </div>
+
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active', 'heart-tab'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  const btn = document.getElementById('tab-btn-' + tab);
+  btn.classList.add('active');
+  if (tab === 'heart') btn.classList.add('heart-tab');
+}
+
+function predictDiabetes() {
+  const glucose = parseFloat(document.getElementById('glucose').value);
+  const bmi = parseFloat(document.getElementById('bmi').value);
+  const age = parseFloat(document.getElementById('age').value);
+
+  let prob = 0;
+  if (glucose > 140) prob += 0.3;
+  if (bmi > 30) prob += 0.25;
+  if (age > 45) prob += 0.2;
+  prob += Math.random() * 0.2;
+  prob = Math.min(prob, 0.98);
+
+  document.getElementById('result-empty-d').style.display = 'none';
+  document.getElementById('result-active-d').classList.add('show');
+
+  const probPct = Math.round(prob * 100);
+  setTimeout(() => {
+    document.getElementById('probFill-d').style.width = probPct + '%';
+    document.getElementById('probFill-d').innerText = probPct + '%';
+  }, 100);
+
+  const badge = document.getElementById('riskBadge-d');
+  const message = document.getElementById('message-d');
+
+  if (prob < 0.3) {
+    badge.className = 'risk-badge risk-low';
+    badge.innerText = '✅ Rrezik i Ulët';
+    document.getElementById('riskGroup-d').innerText = 'Rrezik i Ulët';
+    document.getElementById('prediction-d').innerText = 'Jo Diabetik';
+    message.innerHTML = '✅ Rezultati: rrezik i ulët. Monitorim rutinë rekomandohet.';
+  } else if (prob < 0.6) {
+    badge.className = 'risk-badge risk-medium';
+    badge.innerText = '⚠️ Rrezik Mesatar';
+    document.getElementById('riskGroup-d').innerText = 'Rrezik Mesatar';
+    document.getElementById('prediction-d').innerText = prob > 0.5 ? 'Diabetik' : 'Jo Diabetik';
+    message.innerHTML = '⚠️ Rezultati: rrezik mesatar. Rekomandohen kontrolle të mëtejshme.';
+  } else {
+    badge.className = 'risk-badge risk-high';
+    badge.innerText = '🚨 Rrezik i Lartë';
+    document.getElementById('riskGroup-d').innerText = 'Rrezik i Lartë';
+    document.getElementById('prediction-d').innerText = 'Diabetik';
+    message.innerHTML = '🚨 Rezultati: rrezik i lartë. Rekomandohet ekzaminim urgjent.';
+  }
+  document.getElementById('confidence-d').innerText = probPct + '%';
+}
+
+function predictHeart() {
+  const age = parseFloat(document.getElementById('h-age').value);
+  const cp = parseInt(document.getElementById('h-cp').value);
+  const trestbps = parseFloat(document.getElementById('h-trestbps').value);
+  const chol = parseFloat(document.getElementById('h-chol').value);
+  const thalach = parseFloat(document.getElementById('h-thalach').value);
+  const exang = parseInt(document.getElementById('h-exang').value);
+  const oldpeak = parseFloat(document.getElementById('h-oldpeak').value);
+  const ca = parseInt(document.getElementById('h-ca').value);
+
+  let prob = 0;
+  if (age > 55) prob += 0.15;
+  if (cp >= 2) prob += 0.20;
+  if (trestbps > 140) prob += 0.10;
+  if (chol > 240) prob += 0.10;
+  if (thalach < 140) prob += 0.10;
+  if (exang === 1) prob += 0.15;
+  if (oldpeak > 2) prob += 0.10;
+  if (ca > 0) prob += 0.10 * ca;
+  prob += Math.random() * 0.1;
+  prob = Math.min(prob, 0.98);
+
+  document.getElementById('result-empty-h').style.display = 'none';
+  document.getElementById('result-active-h').classList.add('show');
+
+  const probPct = Math.round(prob * 100);
+  setTimeout(() => {
+    document.getElementById('probFill-h').style.width = probPct + '%';
+    document.getElementById('probFill-h').innerText = probPct + '%';
+  }, 100);
+
+  const badge = document.getElementById('riskBadge-h');
+  const message = document.getElementById('message-h');
+
+  if (prob < 0.3) {
+    badge.className = 'risk-badge risk-low';
+    badge.innerText = '✅ Rrezik i Ulët';
+    document.getElementById('riskLevel-h').innerText = 'I Ulët';
+    document.getElementById('prediction-h').innerText = 'I Shëndetshëm';
+    message.innerHTML = '✅ Rezultati: rrezik i ulët për sëmundje zemre. Kontrolle rutinë rekomandohen.';
+  } else if (prob < 0.6) {
+    badge.className = 'risk-badge risk-medium';
+    badge.innerText = '⚠️ Rrezik Mesatar';
+    document.getElementById('riskLevel-h').innerText = 'Mesatar';
+    document.getElementById('prediction-h').innerText = prob > 0.5 ? 'Sëmundje Zemre' : 'Jo Sëmundje';
+    message.innerHTML = '⚠️ Rezultati: rrezik mesatar. Rekomandohet konsultë kardiologjike.';
+  } else {
+    badge.className = 'risk-badge risk-high';
+    badge.innerText = '🚨 Rrezik i Lartë';
+    document.getElementById('riskLevel-h').innerText = 'I Lartë';
+    document.getElementById('prediction-h').innerText = 'Sëmundje Zemre';
+    message.innerHTML = '🚨 Rezultati: rrezik i lartë për sëmundje zemre. EKG urgjent dhe konsultë specialisti.';
+  }
+  document.getElementById('confidence-h').innerText = probPct + '%';
+}
+</script>
+
+</body>
+</html>
